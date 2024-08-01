@@ -66,7 +66,7 @@ const LinkModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-const TiptapEditor = () => {
+const TiptapEditor = ({ onChange }) => {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showFloatingMenu, setShowFloatingMenu] = useState(false);
   const [showColorDropdown, setShowColorDropdown] = useState(false);
@@ -88,6 +88,12 @@ const TiptapEditor = () => {
       }),
     ],
     content: "",
+    onUpdate({ editor }) {
+      // Call the onChange prop with the updated content
+      if (onChange) {
+        onChange(editor.getJSON());
+      }
+    },
   });
 
   useEffect(() => {
@@ -125,8 +131,7 @@ const TiptapEditor = () => {
     if (colorType === "text") {
       editor.chain().focus().setColor(color).run();
     } else if (colorType === "highlight") {
-      editor.chain().focus().toggleHighlight({ color: color }).run()
-
+      editor.chain().focus().toggleHighlight({ color: color }).run();
     }
     setShowColorDropdown(false);
     setColorType(null);
@@ -140,7 +145,6 @@ const TiptapEditor = () => {
 
   return (
     <div className="container">
-     
       <EditorContent
         editor={editor}
         className="editor"
@@ -151,9 +155,9 @@ const TiptapEditor = () => {
         tippyOptions={{ duration: 100 }}
         className="bubbleMenu"
       >
-         {showColorDropdown && (
+        {showColorDropdown && (
           <ColorDropdown colors={colors} onColorSelect={applyColor} />
-      )}
+        )}
         <IconButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive("bold")}
