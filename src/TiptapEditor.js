@@ -66,7 +66,7 @@ const LinkModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-const TiptapEditor = ({ onChange }) => {
+const TiptapEditor = ({ onChange, onChangeHTML }) => {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showFloatingMenu, setShowFloatingMenu] = useState(false);
   const [showColorDropdown, setShowColorDropdown] = useState(false);
@@ -92,6 +92,9 @@ const TiptapEditor = ({ onChange }) => {
       // Call the onChange prop with the updated content
       if (onChange) {
         onChange(editor.getJSON());
+      }
+      if (onChangeHTML) {
+        onChangeHTML(editor.getHTML());
       }
     },
   });
