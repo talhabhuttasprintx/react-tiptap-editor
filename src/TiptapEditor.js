@@ -1,20 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import Highlight from '@tiptap/extension-highlight';
-import Link from '@tiptap/extension-link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBold, faItalic, faUnderline, faStrikethrough, faPalette, faHighlighter,
-  faListOl, faListUl, faUndo, faRedo, faLink, faUnlink, faTimes
-} from '@fortawesome/free-solid-svg-icons';
-import './style.css'; 
+import React, { useEffect, useState } from "react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import Highlight from "@tiptap/extension-highlight";
+import Link from "@tiptap/extension-link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBold,
+  faItalic,
+  faUnderline,
+  faStrikethrough,
+  faPalette,
+  faHighlighter,
+  faListOl,
+  faListUl,
+  faUndo,
+  faRedo,
+  faLink,
+  faUnlink,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import ColorDropdown from "./ColorDropdown";
+import "./style.css";
+
+const colors = [
+  "#ffa500",
+  "#40e0d0",
+  "#008000",
+  "#ff4040",
+  "#ff1493",
+  "#40e0d0",
+];
 
 const LinkModal = ({ isOpen, onClose, onSubmit }) => {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
 
   if (!isOpen) return null;
 
@@ -31,10 +52,10 @@ const LinkModal = ({ isOpen, onClose, onSubmit }) => {
           placeholder="Enter URL"
           className="modalInput"
         />
-        <button 
+        <button
           onClick={() => {
             onSubmit(url);
-            setUrl('');
+            setUrl("");
           }}
           className="modalButton"
         >
@@ -48,6 +69,8 @@ const LinkModal = ({ isOpen, onClose, onSubmit }) => {
 const TiptapEditor = () => {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showFloatingMenu, setShowFloatingMenu] = useState(false);
+  const [showColorDropdown, setShowColorDropdown] = useState(false);
+  const [colorType, setColorType] = useState(null);
 
   const editor = useEditor({
     extensions: [
@@ -55,30 +78,30 @@ const TiptapEditor = () => {
       Underline,
       TextStyle,
       Color.extend({
-        types: ['textStyle'],
+        types: ["textStyle"],
       }),
-      Highlight,
+      Highlight.configure({ multicolor: true }),
       Link.configure({
         openOnClick: true,
         linkOnPaste: true,
-        validate: href => /^https?:\/\//.test(href),
+        validate: (href) => /^https?:\/\//.test(href),
       }),
     ],
-    content: '<p>Replace this Text</p>',
+    content: "",
   });
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Enter') {
+      if (event.key === "Enter") {
         setShowFloatingMenu(true);
       } else {
         setShowFloatingMenu(false);
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [editor]);
 
@@ -89,7 +112,7 @@ const TiptapEditor = () => {
   const addLink = (url) => {
     if (url) {
       const href = url.match(/^https?:\/\//) ? url : `https://${url}`;
-      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+      editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
     }
     setShowLinkModal(false);
   };
@@ -98,51 +121,81 @@ const TiptapEditor = () => {
     editor.chain().focus().unsetLink().run();
   };
 
-  const applyColor = () => {
-    editor.chain().focus().setColor('#ff0000').run(); // Set a specific color, e.g., red
+  const applyColor = (color) => {
+    if (colorType === "text") {
+      editor.chain().focus().setColor(color).run();
+    } else if (colorType === "highlight") {
+      editor.chain().focus().toggleHighlight({ color: color }).run()
+
+    }
+    setShowColorDropdown(false);
+    setColorType(null);
+  };
+
+  const handleEditorClick = () => {
+    if (editor) {
+      editor.chain().focus().run();
+    }
   };
 
   return (
     <div className="container">
-      <EditorContent editor={editor} className="editor" />
-      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubbleMenu">
+     
+      <EditorContent
+        editor={editor}
+        className="editor"
+        onClick={handleEditorClick}
+      />
+      <BubbleMenu
+        editor={editor}
+        tippyOptions={{ duration: 100 }}
+        className="bubbleMenu"
+      >
+         {showColorDropdown && (
+          <ColorDropdown colors={colors} onColorSelect={applyColor} />
+      )}
         <IconButton
           onClick={() => editor.chain().focus().toggleBold().run()}
-          isActive={editor.isActive('bold')}
+          isActive={editor.isActive("bold")}
           icon={faBold}
         />
         <IconButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          isActive={editor.isActive('italic')}
+          isActive={editor.isActive("italic")}
           icon={faItalic}
         />
         <IconButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          isActive={editor.isActive('underline')}
+          isActive={editor.isActive("underline")}
           icon={faUnderline}
         />
         <IconButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          isActive={editor.isActive('strike')}
+          isActive={editor.isActive("strike")}
           icon={faStrikethrough}
         />
         <IconButton
-          onClick={applyColor}
+          onClick={() => {
+            setColorType("text");
+            setShowColorDropdown(!showColorDropdown);
+          }}
           icon={faPalette}
         />
         <IconButton
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-          isActive={editor.isActive('highlight')}
+          onClick={() => {
+            setColorType("highlight");
+            setShowColorDropdown(!showColorDropdown);
+          }}
           icon={faHighlighter}
         />
         <IconButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          isActive={editor.isActive('orderedList')}
+          isActive={editor.isActive("orderedList")}
           icon={faListOl}
         />
         <IconButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          isActive={editor.isActive('bulletList')}
+          isActive={editor.isActive("bulletList")}
           icon={faListUl}
         />
         <IconButton
@@ -155,16 +208,16 @@ const TiptapEditor = () => {
         />
         <IconButton
           onClick={() => setShowLinkModal(true)}
-          isActive={editor.isActive('link')}
+          isActive={editor.isActive("link")}
           icon={faLink}
         />
-        {editor.isActive('link') && (
+        {editor.isActive("link") && (
           <IconButton onClick={removeLink} icon={faUnlink} />
         )}
       </BubbleMenu>
       {showFloatingMenu && (
-        <div 
-          className={showFloatingMenu ? "floatingMenu" : "floatingMenuHidden"} 
+        <div
+          className={showFloatingMenu ? "floatingMenu" : "floatingMenuHidden"}
         >
           <IconButton
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -176,17 +229,18 @@ const TiptapEditor = () => {
           />
           <IconButton
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            isActive={editor.isActive('orderedList')}
+            isActive={editor.isActive("orderedList")}
             icon={faListOl}
           />
           <IconButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            isActive={editor.isActive('bulletList')}
+            isActive={editor.isActive("bulletList")}
             icon={faListUl}
           />
         </div>
       )}
-      <LinkModal 
+
+      <LinkModal
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
         onSubmit={addLink}
@@ -196,8 +250,8 @@ const TiptapEditor = () => {
 };
 
 const IconButton = ({ onClick, isActive, icon }) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={isActive ? "iconButton iconButtonActive" : "iconButton"}
   >
     <FontAwesomeIcon icon={icon} />
