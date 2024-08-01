@@ -64,7 +64,7 @@ const TiptapEditor = () => {
         validate: href => /^https?:\/\//.test(href),
       }),
     ],
-    content: '<p>Type Something..</p>',
+    content: '<p>Replace this Text</p>',
   });
 
   useEffect(() => {
